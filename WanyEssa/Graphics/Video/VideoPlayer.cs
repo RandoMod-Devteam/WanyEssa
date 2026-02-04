@@ -1,11 +1,9 @@
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
 
 namespace WanyEssa.Graphics.Video
 {
     public class VideoPlayer : IDisposable
     {
-        private IntPtr _playerHandle;
         private bool _isPlaying;
         private bool _isPaused;
         private float _volume;
@@ -25,7 +23,6 @@ namespace WanyEssa.Graphics.Video
 
         public VideoPlayer()
         {
-            _playerHandle = IntPtr.Zero;
             _isPlaying = false;
             _isPaused = false;
             _volume = 1.0f;
@@ -104,7 +101,7 @@ namespace WanyEssa.Graphics.Video
 
         public void Render(float x, float y, float width, float height)
         {
-            if (_textureId > 0)
+            if (_textureId > 0 && _frameData != null)
             {
                 // 使用现代OpenGL渲染视频帧
                 // 注意：这里简化处理，实际应该使用着色器

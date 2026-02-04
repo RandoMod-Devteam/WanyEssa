@@ -52,6 +52,8 @@ namespace WanyEssa.Graphics
         private int _emitCountLocation;
         
         // Particle data structure
+        // 注意：这些字段由GPU计算着色器读写，C#端仅分配内存
+#pragma warning disable CS0649
         private struct ParticleData
         {
             public Vector3 Position;
@@ -66,6 +68,7 @@ namespace WanyEssa.Graphics
             public float Rotation;
             public float RotationSpeed;
         }
+#pragma warning restore CS0649
         
         public bool IsEmitting => _isEmitting;
         public int ActiveParticles => _activeParticles;
