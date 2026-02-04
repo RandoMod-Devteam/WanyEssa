@@ -57,7 +57,7 @@ namespace WanyEssa.Graphics
     
     public class ParticleSystem
     {
-        private List<Particle> _particles;
+        private List<Particle> _particles = [];
         private int _maxParticles;
         private bool _isEmitting;
         private float _emitRate;
@@ -80,7 +80,7 @@ namespace WanyEssa.Graphics
         
         public ParticleSystem(int maxParticles = 1000)
         {
-            _particles = new List<Particle>();
+            _particles = [];
             _maxParticles = maxParticles;
             _isEmitting = false;
             _emitRate = 100.0f; // Particles per second
@@ -175,7 +175,7 @@ namespace WanyEssa.Graphics
             float size = _particleSize + (float)(new Random().NextDouble() * _sizeVariation * 2.0f - _sizeVariation);
             float lifeTime = _particleLifeTime + (float)(new Random().NextDouble() * _lifeTimeVariation * 2.0f - _lifeTimeVariation);
             
-            Particle particle = new Particle(
+            Particle particle = new(
                 _emitPosition,
                 velocity,
                 _particleAcceleration,

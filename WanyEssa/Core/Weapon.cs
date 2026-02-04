@@ -53,7 +53,7 @@ namespace WanyEssa.Core
             _isReloading = false;
             _reloadTimer = 0.0f;
             _isAiming = false;
-            _particleSystems = new List<ParticleSystem>();
+            _particleSystems = [];
             
             // Initialize Mesh with default value
             Mesh = null;

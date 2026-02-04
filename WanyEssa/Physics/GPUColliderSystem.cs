@@ -209,7 +209,7 @@ namespace WanyEssa.Physics
         public List<CollisionPair> DetectCollisions()
         {
             if (_colliderCount == 0)
-                return new List<CollisionPair>();
+                return [];
             
             // Use compute shader for collision detection
             GL.UseProgram(_computeShader);
@@ -230,7 +230,7 @@ namespace WanyEssa.Physics
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
             
             // Process results
-            List<CollisionPair> collisionPairs = new List<CollisionPair>();
+            List<CollisionPair> collisionPairs = [];
             for (int i = 0; i < _colliderCount; i++)
             {
                 for (int j = i + 1; j < _colliderCount; j++)

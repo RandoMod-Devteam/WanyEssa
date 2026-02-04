@@ -6,16 +6,16 @@ namespace WanyEssa.Graphics
 {
     public class OpenGLResourceManager : IDisposable
     {
-        private Dictionary<string, VertexArrayObject> _vaos;
-        private Dictionary<string, BufferObject> _vbos;
-        private Dictionary<string, UniformBufferObject> _ubos;
+        private readonly Dictionary<string, VertexArrayObject> _vaos;
+        private readonly Dictionary<string, BufferObject> _vbos;
+        private readonly Dictionary<string, UniformBufferObject> _ubos;
         private bool _disposed;
         
         public OpenGLResourceManager()
         {
-            _vaos = new Dictionary<string, VertexArrayObject>();
-            _vbos = new Dictionary<string, BufferObject>();
-            _ubos = new Dictionary<string, UniformBufferObject>();
+            _vaos = [];
+            _vbos = [];
+            _ubos = [];
             _disposed = false;
         }
         

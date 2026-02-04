@@ -12,10 +12,10 @@ namespace WanyEssa.Graphics
         private int _indexBuffer;
         private int _vertexCount;
         private int _indexCount;
-        private List<Vector3> _vertices;
-        private List<Vector3> _normals;
-        private List<Vector2> _uvs;
-        private List<int> _indices;
+        private readonly List<Vector3> _vertices;
+        private readonly List<Vector3> _normals;
+        private readonly List<Vector2> _uvs;
+        private readonly List<int> _indices;
         private int _textureId;
         
         public Vector3 Position { get; set; } = Vector3.Zero;
@@ -28,10 +28,10 @@ namespace WanyEssa.Graphics
         
         public Mesh()
         {
-            _vertices = new List<Vector3>();
-            _normals = new List<Vector3>();
-            _uvs = new List<Vector2>();
-            _indices = new List<int>();
+            _vertices = [];
+            _normals = [];
+            _uvs = [];
+            _indices = [];
             _textureId = -1;
         }
         

@@ -40,7 +40,7 @@ namespace WanyEssa.Core
             _physicsBody = new PhysicsBody(position == default(Vector3) ? new Vector3(0, 0, 0) : position, 1.0f, false);
             _physicsWorld = physicsWorld;
             _physicsWorld.AddBody(_physicsBody);
-            _weapons = new List<Weapon>();
+            _weapons = [];
             _currentWeaponIndex = -1;
             _moveSpeed = 5.0f;
             _runSpeed = 8.0f;

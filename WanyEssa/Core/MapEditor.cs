@@ -49,10 +49,10 @@ namespace WanyEssa.Core
             _uiMode = UIMode.MapEdit;
             
             // Initialize map data with empty tiles (0 = empty, 1+ = tiles)
-            _mapData = new List<List<int>>();
+            _mapData = [];
             for (int y = 0; y < _mapHeight; y++)
             {
-                List<int> row = new List<int>();
+                List<int> row = [];
                 for (int x = 0; x < _mapWidth; x++)
                 {
                     row.Add(0);
@@ -222,13 +222,13 @@ namespace WanyEssa.Core
                     _gridSize = int.Parse(headerParts[2]);
                     
                     // Initialize map data
-                    _mapData = new List<List<int>>();
+                    _mapData = [];
                     for (int y = 0; y < _mapHeight; y++)
                     {
                         string line = reader.ReadLine() ?? string.Empty;
                         string[] tileParts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         
-                        List<int> row = new List<int>();
+                        List<int> row = [];
                         for (int x = 0; x < _mapWidth; x++)
                         {
                             if (x < tileParts.Length)
@@ -259,10 +259,10 @@ namespace WanyEssa.Core
             _gridSize = gridSize;
             
             // Initialize empty map
-            _mapData = new List<List<int>>();
+            _mapData = [];
             for (int y = 0; y < _mapHeight; y++)
             {
-                List<int> row = new List<int>();
+                List<int> row = [];
                 for (int x = 0; x < _mapWidth; x++)
                 {
                     row.Add(0);

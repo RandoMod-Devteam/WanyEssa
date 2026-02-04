@@ -22,8 +22,8 @@ namespace WanyEssa.Core
             _isOpen = false;
             _isEnabled = Settings.Instance.ConsoleEnabled;
             _inputBuffer = string.Empty;
-            _history = new List<string>();
-            _messages = new List<string>();
+            _history = [];
+            _messages = [];
             _historyIndex = -1;
         }
         

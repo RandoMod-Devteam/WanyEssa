@@ -15,7 +15,7 @@ namespace WanyEssa.Graphics
         private int _particleShader;
         private int _particleBuffer;
         private int _vertexArray;
-        private int _maxParticles;
+        private readonly int _maxParticles;
         private int _activeParticles;
         private bool _isEmitting;
         private float _emitRate;

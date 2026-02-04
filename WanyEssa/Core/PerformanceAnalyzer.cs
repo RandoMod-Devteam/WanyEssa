@@ -213,9 +213,9 @@ namespace WanyEssa.Core
         public DebugRenderer(Renderer renderer)
         {
             _renderer = renderer;
-            _lines = new List<DebugLine>();
-            _texts = new List<DebugText>();
-            _bounds = new List<DebugBounds>();
+            _lines = [];
+            _texts = [];
+            _bounds = [];
             _disposed = false;
         }
         

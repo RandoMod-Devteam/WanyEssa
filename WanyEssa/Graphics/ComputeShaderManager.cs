@@ -9,11 +9,11 @@ namespace WanyEssa.Graphics
 {
     public class ComputeShaderManager
     {
-        private Dictionary<string, ComputeShader> _shaders;
+        private readonly Dictionary<string, ComputeShader> _shaders;
         
         public ComputeShaderManager()
         {
-            _shaders = new Dictionary<string, ComputeShader>();
+            _shaders = [];
         }
         
         public ComputeShader CreateShader(string name, string shaderSource)
@@ -80,8 +80,8 @@ namespace WanyEssa.Graphics
     {
         private string _name;
         private int _shaderProgram;
-        private Dictionary<string, int> _uniformLocations;
-        private Dictionary<int, int> _bufferBindings;
+        private readonly Dictionary<string, int> _uniformLocations;
+        private readonly Dictionary<int, int> _bufferBindings;
         private bool _disposed;
         
         public string Name => _name;
@@ -90,8 +90,8 @@ namespace WanyEssa.Graphics
         public ComputeShader(string name, string shaderSource)
         {
             _name = name;
-            _uniformLocations = new Dictionary<string, int>();
-            _bufferBindings = new Dictionary<int, int>();
+            _uniformLocations = [];
+            _bufferBindings = [];
             _disposed = false;
             
             InitializeShader(shaderSource);
@@ -301,7 +301,7 @@ namespace WanyEssa.Graphics
     {
         private int _buffer;
         private int _size;
-        private BufferUsage _usage;
+        private readonly BufferUsage _usage;
         private bool _disposed;
         
         public int Buffer => _buffer;
@@ -412,7 +412,7 @@ namespace WanyEssa.Graphics
                     GL.DeleteBuffer(_buffer);
                     _buffer = 0;
                 }
-                
+
                 _size = 0;
                 _disposed = true;
             }

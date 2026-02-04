@@ -111,7 +111,7 @@ namespace WanyEssa.Graphics.Video
             }
         }
 
-        public void SetPosition(float position)
+        public static void SetPosition(float position)
         {
             Console.WriteLine($"[VideoPlayer] Setting video position to: {position} seconds");
         }

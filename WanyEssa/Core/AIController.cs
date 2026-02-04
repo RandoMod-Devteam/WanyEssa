@@ -44,7 +44,7 @@ namespace WanyEssa.Core
             _camera = new Camera(800, 600, position);
             _player = player;
             _currentState = AIState.Idle;
-            _patrolPoints = new List<Vector3>();
+            _patrolPoints = [];
             _currentPatrolIndex = 0;
             _moveSpeed = 2.0f;
             _rotationSpeed = 5.0f;

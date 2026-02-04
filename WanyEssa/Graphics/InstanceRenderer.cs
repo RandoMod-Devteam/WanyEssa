@@ -217,7 +217,7 @@ namespace WanyEssa.Graphics
             GL.Enable(EnableCap.DepthTest);
         }
         
-        public void End()
+        public static void End()
         {
             GL.Disable(EnableCap.DepthTest);
         }
@@ -239,7 +239,7 @@ namespace WanyEssa.Graphics
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
             
             // Get mesh vertex data
-            List<float> vertexData = new();
+            List<float> vertexData = [];
             for (int i = 0; i < mesh.VertexCount; i++)
             {
                 var vertex = mesh.GetVertex(i);
@@ -284,7 +284,7 @@ namespace WanyEssa.Graphics
                 return;
             
             // Generate instance matrices
-            List<Matrix4> instanceMatrices = new List<Matrix4>();
+            List<Matrix4> instanceMatrices = [];
             for (int i = 0; i < positions.Count; i++)
             {
                 Vector3 scale = i < scales.Count ? scales[i] : Vector3.One;

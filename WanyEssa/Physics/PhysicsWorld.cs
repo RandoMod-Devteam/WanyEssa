@@ -18,8 +18,8 @@ namespace WanyEssa.Physics
         
         public PhysicsWorld(float timeStep = 1.0f / 60.0f)
         {
-            _bodies = new List<PhysicsBody>();
-            _colliders = new List<Collider>();
+            _bodies = [];
+            _colliders = [];
             _gravity = new Vector3(0, -9.81f, 0); // Earth gravity
             _timeStep = timeStep;
         }
