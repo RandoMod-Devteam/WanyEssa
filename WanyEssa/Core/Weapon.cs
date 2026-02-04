@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 using WanyEssa.Graphics;
 using WanyEssa.Audio;
 
@@ -102,7 +102,15 @@ namespace WanyEssa.Core
             if (Accuracy < 1.0f)
             {
                 float spread = (1.0f - Accuracy) * 5.0f; // 5 degrees max spread
-                fireDirection = Vector3.RandomDirection(fireDirection, spread);
+                // Simple random direction calculation
+                Random rand = new Random();
+                float x = (float)(rand.NextDouble() * 2 - 1) * spread * (float)Math.PI / 180.0f;
+                float y = (float)(rand.NextDouble() * 2 - 1) * spread * (float)Math.PI / 180.0f;
+                
+                // Create rotation matrix for spread
+                Matrix4 rotation = Matrix4.CreateRotationY(y) * Matrix4.CreateRotationX(x) * Matrix4.CreateRotationZ(0);
+                fireDirection = Vector3.TransformNormal(fireDirection, rotation);
+                fireDirection = fireDirection.Normalized();
             }
             
             // Calculate hit point (simple raycast for now)
@@ -152,7 +160,7 @@ namespace WanyEssa.Core
             _isAiming = aiming;
         }
         
-        public void Draw(Renderer renderer, Color color)
+        public void Draw(Renderer renderer, Vector4 color)
         {
             if (Mesh != null)
             {

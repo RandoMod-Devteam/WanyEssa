@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
-using Matrix4 = OpenTK.Mathematics.Matrix4;
-using Vector2 = WanyEssa.Math.Vector2;
-using Vector3 = WanyEssa.Math.Vector3;
-using Color = WanyEssa.Math.Color;
-using WanyEssa.Math;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Graphics
 {
@@ -21,6 +17,13 @@ namespace WanyEssa.Graphics
         private int _lightPositionLocation;
         private int _lightColorLocation;
         private int _ambientColorLocation;
+        private int _camPositionLocation;
+        private int _albedoTextureLocation;
+        private int _normalTextureLocation;
+        private int _metallicTextureLocation;
+        private int _roughnessTextureLocation;
+        private int _aoTextureLocation;
+        private int _usePBR;
         private int _windowWidth;
         private int _windowHeight;
         
@@ -61,7 +64,7 @@ namespace WanyEssa.Graphics
                 }
             ";
             
-            // 3D fragment shader with lighting
+            // 3D fragment shader with PBR lighting
             string fragmentShaderSource = @"
                 #version 330 core
                 
@@ -69,6 +72,13 @@ namespace WanyEssa.Graphics
                 uniform vec3 lightPosition;
                 uniform vec3 lightColor;
                 uniform vec3 ambientColor;
+                uniform vec3 camPosition;
+                uniform sampler2D albedoTexture;
+                uniform sampler2D normalTexture;
+                uniform sampler2D metallicTexture;
+                uniform sampler2D roughnessTexture;
+                uniform sampler2D aoTexture;
+                uniform bool usePBR;
                 
                 in vec3 fragPosition;
                 in vec3 fragNormal;
@@ -76,20 +86,118 @@ namespace WanyEssa.Graphics
                 
                 out vec4 fragColor;
                 
+                const float PI = 3.14159265359;
+                
+                // PBR helper functions
+                float DistributionGGX(vec3 N, vec3 H, float roughness)
+                {
+                    float a = roughness*roughness;
+                    float a2 = a*a;
+                    float NdotH = max(dot(N, H), 0.0);
+                    float NdotH2 = NdotH*NdotH;
+                    
+                    float nom   = a2;
+                    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+                    denom = PI * denom * denom;
+                    
+                    return nom / denom;
+                }
+                
+                float GeometrySchlickGGX(float NdotV, float roughness)
+                {
+                    float r = (roughness + 1.0);
+                    float k = (r*r) / 8.0;
+                    
+                    float nom   = NdotV;
+                    float denom = NdotV * (1.0 - k) + k;
+                    
+                    return nom / denom;
+                }
+                
+                float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+                {
+                    float NdotV = max(dot(N, V), 0.0);
+                    float NdotL = max(dot(N, L), 0.0);
+                    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+                    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+                    
+                    return ggx1 * ggx2;
+                }
+                
+                vec3 fresnelSchlick(float cosTheta, vec3 F0)
+                {
+                    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+                }
+                
                 void main()
                 {
-                    // Ambient lighting
-                    vec3 ambient = ambientColor * 0.5;
-                    
-                    // Diffuse lighting
-                    vec3 normal = normalize(fragNormal);
-                    vec3 lightDir = normalize(lightPosition - fragPosition);
-                    float diff = max(dot(normal, lightDir), 0.0);
-                    vec3 diffuse = lightColor * diff;
-                    
-                    // Combine lighting
-                    vec3 result = (ambient + diffuse) * color.rgb;
-                    fragColor = vec4(result, color.a);
+                    if (usePBR)
+                    {
+                        // PBR rendering
+                        vec3 albedo = pow(texture(albedoTexture, fragUV).rgb, vec3(2.2));
+                        float metallic = texture(metallicTexture, fragUV).r;
+                        float roughness = texture(roughnessTexture, fragUV).r;
+                        float ao = texture(aoTexture, fragUV).r;
+                        
+                        vec3 N = normalize(fragNormal);
+                        vec3 V = normalize(camPosition - fragPosition);
+                        
+                        // Calculate reflectance at normal incidence
+                        vec3 F0 = vec3(0.04);
+                        F0 = mix(F0, albedo, metallic);
+                        
+                        // Lighting
+                        vec3 Lo = vec3(0.0);
+                        
+                        // Directional light
+                        vec3 L = normalize(lightPosition - fragPosition);
+                        vec3 H = normalize(V + L);
+                        float distance = length(lightPosition - fragPosition);
+                        float attenuation = 1.0 / (distance * distance);
+                        vec3 radiance = lightColor * attenuation;
+                        
+                        // BRDF
+                        float NDF = DistributionGGX(N, H, roughness);
+                        float G = GeometrySmith(N, V, L, roughness);
+                        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+                        
+                        vec3 numerator = NDF * G * F;
+                        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+                        vec3 specular = numerator / denominator;
+                        
+                        vec3 kS = F;
+                        vec3 kD = vec3(1.0) - kS;
+                        kD *= 1.0 - metallic;
+                        
+                        float NdotL = max(dot(N, L), 0.0);
+                        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+                        
+                        vec3 ambient = ambientColor * albedo * ao;
+                        vec3 color = ambient + Lo;
+                        
+                        // Tone mapping
+                        color = color / (color + vec3(1.0));
+                        // Gamma correction
+                        color = pow(color, vec3(1.0/2.2));
+                        
+                        fragColor = vec4(color, 1.0);
+                    }
+                    else
+                    {
+                        // Traditional lighting
+                        // Ambient lighting
+                        vec3 ambient = ambientColor * 0.5;
+                        
+                        // Diffuse lighting
+                        vec3 normal = normalize(fragNormal);
+                        vec3 lightDir = normalize(lightPosition - fragPosition);
+                        float diff = max(dot(normal, lightDir), 0.0);
+                        vec3 diffuse = lightColor * diff;
+                        
+                        // Combine lighting
+                        vec3 result = (ambient + diffuse) * color.rgb;
+                        fragColor = vec4(result, color.a);
+                    }
                 }
             ";
             
@@ -117,6 +225,13 @@ namespace WanyEssa.Graphics
             _lightPositionLocation = GL.GetUniformLocation(_shaderProgram, "lightPosition");
             _lightColorLocation = GL.GetUniformLocation(_shaderProgram, "lightColor");
             _ambientColorLocation = GL.GetUniformLocation(_shaderProgram, "ambientColor");
+            _camPositionLocation = GL.GetUniformLocation(_shaderProgram, "camPosition");
+            _albedoTextureLocation = GL.GetUniformLocation(_shaderProgram, "albedoTexture");
+            _normalTextureLocation = GL.GetUniformLocation(_shaderProgram, "normalTexture");
+            _metallicTextureLocation = GL.GetUniformLocation(_shaderProgram, "metallicTexture");
+            _roughnessTextureLocation = GL.GetUniformLocation(_shaderProgram, "roughnessTexture");
+            _aoTextureLocation = GL.GetUniformLocation(_shaderProgram, "aoTexture");
+            _usePBR = GL.GetUniformLocation(_shaderProgram, "usePBR");
             
             // Clean up shaders
             GL.DetachShader(_shaderProgram, vertexShader);
@@ -138,18 +253,18 @@ namespace WanyEssa.Graphics
             
             // Position attribute (3 floats)
             int positionLocation = GL.GetAttribLocation(_shaderProgram, "position");
-            GL.EnableVertexAttribArray(positionLocation);
-            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+            GL.EnableVertexAttribArray((uint)positionLocation);
+            GL.VertexAttribPointer((uint)positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (IntPtr)0);
             
             // Normal attribute (3 floats)
             int normalLocation = GL.GetAttribLocation(_shaderProgram, "normal");
-            GL.EnableVertexAttribArray(normalLocation);
-            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
+            GL.EnableVertexAttribArray((uint)normalLocation);
+            GL.VertexAttribPointer((uint)normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (IntPtr)(3 * sizeof(float)));
             
             // UV attribute (2 floats)
             int uvLocation = GL.GetAttribLocation(_shaderProgram, "uv");
-            GL.EnableVertexAttribArray(uvLocation);
-            GL.VertexAttribPointer(uvLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 6 * sizeof(float));
+            GL.EnableVertexAttribArray((uint)uvLocation);
+            GL.VertexAttribPointer((uint)uvLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), (IntPtr)(6 * sizeof(float)));
             
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
@@ -167,13 +282,19 @@ namespace WanyEssa.Graphics
             );
             
             GL.UseProgram(_shaderProgram);
-            GL.UniformMatrix4(_projectionLocation, false, ref projectionMatrix);
+            GL.UniformMatrix4f(_projectionLocation, 1, false, ref projectionMatrix);
         }
         
         public void SetViewMatrix(Matrix4 viewMatrix)
         {
             GL.UseProgram(_shaderProgram);
-            GL.UniformMatrix4(_viewLocation, false, ref viewMatrix);
+            GL.UniformMatrix4f(_viewLocation, 1, false, ref viewMatrix);
+        }
+        
+        public void SetCameraPosition(Vector3 position)
+        {
+            GL.UseProgram(_shaderProgram);
+            GL.Uniform3f(_camPositionLocation, position.X, position.Y, position.Z);
         }
         
         private void SetupLighting()
@@ -181,13 +302,13 @@ namespace WanyEssa.Graphics
             GL.UseProgram(_shaderProgram);
             
             // Set light position (above and behind the camera)
-            GL.Uniform3(_lightPositionLocation, 0.0f, 10.0f, -10.0f);
+            GL.Uniform3f(_lightPositionLocation, 0.0f, 10.0f, -10.0f);
             
             // Set light color (white)
-            GL.Uniform3(_lightColorLocation, 1.0f, 1.0f, 1.0f);
+            GL.Uniform3f(_lightColorLocation, 1.0f, 1.0f, 1.0f);
             
             // Set ambient color (dark gray)
-            GL.Uniform3(_ambientColorLocation, 0.2f, 0.2f, 0.2f);
+            GL.Uniform3f(_ambientColorLocation, 0.2f, 0.2f, 0.2f);
         }
         
         public void Begin()
@@ -201,7 +322,7 @@ namespace WanyEssa.Graphics
             GL.Disable(EnableCap.DepthTest);
         }
         
-        public void DrawMesh(Mesh mesh, Color color)
+        public void DrawMesh(Mesh mesh, Vector4 color, bool usePBR = false)
         {
             GL.UseProgram(_shaderProgram);
             
@@ -212,14 +333,79 @@ namespace WanyEssa.Graphics
                                  Matrix4.CreateRotationZ(mesh.Rotation.Z) *
                                  Matrix4.CreateTranslation(mesh.Position.X, mesh.Position.Y, mesh.Position.Z);
             
-            GL.UniformMatrix4(_modelLocation, false, ref modelMatrix);
-            GL.Uniform4(_colorLocation, color.R, color.G, color.B, color.A);
+            GL.UniformMatrix4f(_modelLocation, 1, false, ref modelMatrix);
+            GL.Uniform4f(_colorLocation, color.X, color.Y, color.Z, color.W);
+            GL.Uniform1i(_usePBR, usePBR ? 1 : 0);
+            
+            // Set texture units
+            if (usePBR)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0);
+                GL.BindTexture(TextureTarget.Texture2d, 0); // Default texture
+                GL.Uniform1i(_albedoTextureLocation, 0);
+                
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2d, 0);
+                GL.Uniform1i(_normalTextureLocation, 1);
+                
+                GL.ActiveTexture(TextureUnit.Texture2);
+                GL.BindTexture(TextureTarget.Texture2d, 0);
+                GL.Uniform1i(_metallicTextureLocation, 2);
+                
+                GL.ActiveTexture(TextureUnit.Texture3);
+                GL.BindTexture(TextureTarget.Texture2d, 0);
+                GL.Uniform1i(_roughnessTextureLocation, 3);
+                
+                GL.ActiveTexture(TextureUnit.Texture4);
+                GL.BindTexture(TextureTarget.Texture2d, 0);
+                GL.Uniform1i(_aoTextureLocation, 4);
+            }
             
             // Draw mesh
             mesh.Draw();
         }
         
-        public void DrawRectangle(WanyEssa.Math.Vector3 position, WanyEssa.Math.Vector2 size, Color color)
+        public void DrawMesh(Mesh mesh, Vector4 color, int albedoTexture, int normalTexture, int metallicTexture, int roughnessTexture, int aoTexture)
+        {
+            GL.UseProgram(_shaderProgram);
+            
+            // Set model matrix
+            Matrix4 modelMatrix = Matrix4.CreateScale(mesh.Scale.X, mesh.Scale.Y, mesh.Scale.Z) *
+                                 Matrix4.CreateRotationX(mesh.Rotation.X) *
+                                 Matrix4.CreateRotationY(mesh.Rotation.Y) *
+                                 Matrix4.CreateRotationZ(mesh.Rotation.Z) *
+                                 Matrix4.CreateTranslation(mesh.Position.X, mesh.Position.Y, mesh.Position.Z);
+            
+            GL.UniformMatrix4f(_modelLocation, 1, false, ref modelMatrix);
+            GL.Uniform4f(_colorLocation, color.X, color.Y, color.Z, color.W);
+            GL.Uniform1i(_usePBR, 1); // Always use PBR for this overload
+            
+            // Set texture units
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2d, albedoTexture > 0 ? albedoTexture : 0);
+            GL.Uniform1i(_albedoTextureLocation, 0);
+            
+            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.BindTexture(TextureTarget.Texture2d, normalTexture > 0 ? normalTexture : 0);
+            GL.Uniform1i(_normalTextureLocation, 1);
+            
+            GL.ActiveTexture(TextureUnit.Texture2);
+            GL.BindTexture(TextureTarget.Texture2d, metallicTexture > 0 ? metallicTexture : 0);
+            GL.Uniform1i(_metallicTextureLocation, 2);
+            
+            GL.ActiveTexture(TextureUnit.Texture3);
+            GL.BindTexture(TextureTarget.Texture2d, roughnessTexture > 0 ? roughnessTexture : 0);
+            GL.Uniform1i(_roughnessTextureLocation, 3);
+            
+            GL.ActiveTexture(TextureUnit.Texture4);
+            GL.BindTexture(TextureTarget.Texture2d, aoTexture > 0 ? aoTexture : 0);
+            GL.Uniform1i(_aoTextureLocation, 4);
+            
+            // Draw mesh
+            mesh.Draw();
+        }
+        
+        public void DrawRectangle(Vector3 position, Vector2 size, Vector4 color)
         {
             // Create a plane mesh for 2D rendering
             Mesh plane = Mesh.CreatePlane(size.X, size.Y);
@@ -229,12 +415,12 @@ namespace WanyEssa.Graphics
             plane.Dispose();
         }
         
-        public void DrawRectangle(WanyEssa.Math.Vector2 position, WanyEssa.Math.Vector2 size, Color color)
+        public void DrawRectangle(Vector2 position, Vector2 size, Vector4 color)
         {
-            DrawRectangle(new WanyEssa.Math.Vector3(position.X, position.Y, 0.0f), size, color);
+            DrawRectangle(new Vector3(position.X, position.Y, 0.0f), size, color);
         }
         
-        public void DrawCircle(WanyEssa.Math.Vector3 center, float radius, Color color)
+        public void DrawCircle(Vector3 center, float radius, Vector4 color)
         {
             // Create a sphere mesh for 2D rendering
             Mesh sphere = Mesh.CreateSphere(radius, 32);
@@ -244,9 +430,9 @@ namespace WanyEssa.Graphics
             sphere.Dispose();
         }
         
-        public void DrawCircle(WanyEssa.Math.Vector2 center, float radius, Color color)
+        public void DrawCircle(Vector2 center, float radius, Vector4 color)
         {
-            DrawCircle(new WanyEssa.Math.Vector3(center.X, center.Y, 0.0f), radius, color);
+            DrawCircle(new Vector3(center.X, center.Y, 0.0f), radius, color);
         }
         
         public void Dispose()

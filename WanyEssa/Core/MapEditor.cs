@@ -1,6 +1,6 @@
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Core
 {
@@ -125,7 +125,7 @@ namespace WanyEssa.Core
                 float zoomDelta = mouseState.ScrollDelta.Y;
                 if (zoomDelta != 0)
                 {
-                    _cameraZoom = System.Math.Clamp(_cameraZoom + zoomDelta * 0.1f, 0.5f, 3.0f);
+                    _cameraZoom = Math.Clamp(_cameraZoom + zoomDelta * 0.1f, 0.5f, 3.0f);
                 }
                 
                 // Tile placement

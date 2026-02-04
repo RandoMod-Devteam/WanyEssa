@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 using WanyEssa.Physics;
 using WanyEssa.Graphics;
 
@@ -78,7 +76,7 @@ namespace WanyEssa.Core
             }
             
             // Check player distance
-            float distanceToPlayer = Vector3.Distance(_physicsBody.Position, _player.PhysicsBody.Position);
+            float distanceToPlayerSquared = Vector3.DistanceSquared(_physicsBody.Position, _player.PhysicsBody.Position);
             
             // Check if player is in field of view
             bool playerInSight = IsPlayerInSight();
@@ -101,9 +99,9 @@ namespace WanyEssa.Core
             }
             
             // Transition states based on player distance and visibility
-            if (playerInSight && distanceToPlayer <= _aggroRange)
+            if (playerInSight && distanceToPlayerSquared <= _aggroRange * _aggroRange)
             {
-                if (distanceToPlayer <= _attackRange)
+                if (distanceToPlayerSquared <= _attackRange * _attackRange)
                 {
                     _currentState = AIState.Attack;
                 }
@@ -149,10 +147,10 @@ namespace WanyEssa.Core
             }
             
             Vector3 targetPoint = _patrolPoints[_currentPatrolIndex];
-            Vector3 direction = (targetPoint - _physicsBody.Position).Normalized;
-            float distance = Vector3.Distance(_physicsBody.Position, targetPoint);
+            Vector3 direction = (targetPoint - _physicsBody.Position).Normalized();
+            float distanceSquared = Vector3.DistanceSquared(_physicsBody.Position, targetPoint);
             
-            if (distance > 0.5f)
+            if (distanceSquared > 0.5f)
             {
                 // Move towards patrol point
                 _physicsBody.ApplyForce(direction * _moveSpeed * 100);
@@ -169,7 +167,7 @@ namespace WanyEssa.Core
         
         private void HandleChaseState(float deltaTime)
         {
-            Vector3 direction = (_player.PhysicsBody.Position - _physicsBody.Position).Normalized;
+            Vector3 direction = (_player.PhysicsBody.Position - _physicsBody.Position).Normalized();
             
             // Move towards player
             _physicsBody.ApplyForce(direction * _moveSpeed * 1.5f * 100);
@@ -180,7 +178,7 @@ namespace WanyEssa.Core
         
         private void HandleAttackState(float deltaTime)
         {
-            Vector3 direction = (_player.PhysicsBody.Position - _physicsBody.Position).Normalized;
+            Vector3 direction = (_player.PhysicsBody.Position - _physicsBody.Position).Normalized();
             
             // Rotate towards player
             RotateTowards(direction, deltaTime);
@@ -196,18 +194,18 @@ namespace WanyEssa.Core
         private void RotateTowards(Vector3 direction, float deltaTime)
         {
             // Calculate desired yaw and pitch
-            float desiredYaw = (float)System.Math.Atan2(direction.X, direction.Z) * 180.0f / (float)System.Math.PI;
-            float desiredPitch = (float)System.Math.Asin(direction.Y) * 180.0f / (float)System.Math.PI;
+            float desiredYaw = MathF.Atan2(direction.X, direction.Z) * 180.0f / MathF.PI;
+            float desiredPitch = MathF.Asin(direction.Y) * 180.0f / MathF.PI;
             
             // Smoothly rotate towards desired angles
-            _camera.Yaw = MathHelper.Lerp(_camera.Yaw, desiredYaw, _rotationSpeed * deltaTime);
-            _camera.Pitch = MathHelper.Lerp(_camera.Pitch, desiredPitch, _rotationSpeed * deltaTime);
+            _camera.Yaw = OpenTK.Mathematics.MathHelper.Lerp(_camera.Yaw, desiredYaw, _rotationSpeed * deltaTime);
+            _camera.Pitch = OpenTK.Mathematics.MathHelper.Lerp(_camera.Pitch, desiredPitch, _rotationSpeed * deltaTime);
         }
         
         private bool IsPlayerInSight()
         {
-            Vector3 directionToPlayer = (_player.PhysicsBody.Position - _physicsBody.Position).Normalized;
-            float angle = (float)System.Math.Acos(Vector3.Dot(_camera.Forward, directionToPlayer)) * 180.0f / (float)System.Math.PI;
+            Vector3 directionToPlayer = (_player.PhysicsBody.Position - _physicsBody.Position).Normalized();
+            float angle = MathF.Acos(Vector3.Dot(_camera.Forward, directionToPlayer)) * 180.0f / MathF.PI;
             
             return angle <= _fieldOfView / 2.0f;
         }
@@ -226,16 +224,10 @@ namespace WanyEssa.Core
         {
             if (!_isDead && _weapon != null)
             {
-                _weapon.Draw(renderer, Color.White);
+                _weapon.Draw(renderer, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
             }
         }
     }
     
-    public static class MathHelper
-    {
-        public static float Lerp(float a, float b, float t)
-        {
-            return a + (b - a) * t;
-        }
-    }
+
 }

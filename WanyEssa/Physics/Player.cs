@@ -1,6 +1,6 @@
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Physics
 {
@@ -88,7 +88,7 @@ namespace WanyEssa.Physics
             AnimationTime += deltaTime;
             
             // Determine player state based on velocity and input
-            if (System.Math.Abs(Velocity.X) > 0.1f)
+            if (MathF.Abs(Velocity.X) > 0.1f)
             {
                 State = PlayerState.Running;
             }

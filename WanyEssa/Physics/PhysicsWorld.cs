@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Physics
 {

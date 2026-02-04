@@ -1,16 +1,15 @@
 using System;
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 using Matrix4 = OpenTK.Mathematics.Matrix4;
-using MathHelper = OpenTK.Mathematics.MathHelper;
 
 namespace WanyEssa.Graphics
 {
     public class Camera
     {
-        private WanyEssa.Math.Vector3 _position;
-        private WanyEssa.Math.Vector3 _forward;
-        private WanyEssa.Math.Vector3 _up;
-        private WanyEssa.Math.Vector3 _right;
+        private OpenTK.Mathematics.Vector3 _position;
+        private OpenTK.Mathematics.Vector3 _forward;
+        private OpenTK.Mathematics.Vector3 _up;
+        private OpenTK.Mathematics.Vector3 _right;
         private float _yaw;
         private float _pitch;
         private float _fov;
@@ -23,7 +22,7 @@ namespace WanyEssa.Graphics
         private int _windowWidth;
         private int _windowHeight;
         
-        public WanyEssa.Math.Vector3 Position
+        public OpenTK.Mathematics.Vector3 Position
         {
             get => _position;
             set
@@ -49,7 +48,7 @@ namespace WanyEssa.Graphics
             set
             {
                 // Clamp pitch to avoid gimbal lock
-                _pitch = System.Math.Clamp(value, -89.0f, 89.0f);
+                _pitch = Math.Clamp(value, -89.0f, 89.0f);
                 UpdateVectors();
             }
         }
@@ -59,25 +58,25 @@ namespace WanyEssa.Graphics
             get => _fov;
             set
             {
-                _fov = System.Math.Clamp(value, 1.0f, 179.0f);
+                _fov = Math.Clamp(value, 1.0f, 179.0f);       
                 _projectionMatrixDirty = true;
             }
         }
         
-        public WanyEssa.Math.Vector3 Forward => _forward;
-        public WanyEssa.Math.Vector3 Up => _up;
-        public WanyEssa.Math.Vector3 Right => _right;
+        public OpenTK.Mathematics.Vector3 Forward => _forward;
+        public OpenTK.Mathematics.Vector3 Up => _up;
+        public OpenTK.Mathematics.Vector3 Right => _right;
         public Matrix4 ViewMatrix => GetViewMatrix();
         public Matrix4 ProjectionMatrix => GetProjectionMatrix();
         
-        public Camera(int windowWidth, int windowHeight, WanyEssa.Math.Vector3 position = default)
+        public Camera(int windowWidth, int windowHeight, OpenTK.Mathematics.Vector3 position = default)
         {
             _windowWidth = windowWidth;
             _windowHeight = windowHeight;
-            _position = position == default(WanyEssa.Math.Vector3) ? new WanyEssa.Math.Vector3(0, 0, 0) : position;
-            _forward = WanyEssa.Math.Vector3.Forward;
-            _up = WanyEssa.Math.Vector3.Up;
-            _right = WanyEssa.Math.Vector3.Right;
+            _position = position == default(OpenTK.Mathematics.Vector3) ? new OpenTK.Mathematics.Vector3(0, 0, 0) : position;
+            _forward = new OpenTK.Mathematics.Vector3(0, 0, -1); // Forward
+            _up = new OpenTK.Mathematics.Vector3(0, 1, 0); // Up
+            _right = new OpenTK.Mathematics.Vector3(1, 0, 0); // Right
             _yaw = 0.0f;
             _pitch = 0.0f;
             _fov = 75.0f;
@@ -94,15 +93,15 @@ namespace WanyEssa.Graphics
             _projectionMatrixDirty = true;
         }
         
-        public void LookAt(WanyEssa.Math.Vector3 target)
+        public void LookAt(OpenTK.Mathematics.Vector3 target)
         {
-            _forward = (target - _position).Normalized;
-            _right = WanyEssa.Math.Vector3.Cross(_forward, WanyEssa.Math.Vector3.Up).Normalized;
-            _up = WanyEssa.Math.Vector3.Cross(_right, _forward).Normalized;
+            _forward = (target - _position).Normalized();
+            _right = OpenTK.Mathematics.Vector3.Cross(_forward, new OpenTK.Mathematics.Vector3(0, 1, 0)).Normalized();
+            _up = OpenTK.Mathematics.Vector3.Cross(_right, _forward).Normalized();
             
             // Calculate yaw and pitch from forward vector
-            _yaw = (float)System.Math.Atan2(_forward.X, _forward.Z);
-            _pitch = (float)System.Math.Asin(_forward.Y);
+            _yaw = MathF.Atan2(_forward.X, _forward.Z);
+            _pitch = MathF.Asin(_forward.Y);
             
             _viewMatrixDirty = true;
         }
@@ -113,7 +112,7 @@ namespace WanyEssa.Graphics
             _pitch -= deltaY * sensitivity;
             
             // Clamp pitch to avoid gimbal lock
-            _pitch = System.Math.Clamp(_pitch, -89.0f, 89.0f);
+            _pitch = Math.Clamp(_pitch, -89.0f, 89.0f);
             
             UpdateVectors();
         }
@@ -121,18 +120,18 @@ namespace WanyEssa.Graphics
         private void UpdateVectors()
         {
             // Calculate new forward vector
-            float yawRad = OpenTK.Mathematics.MathHelper.DegreesToRadians(_yaw);
-            float pitchRad = OpenTK.Mathematics.MathHelper.DegreesToRadians(_pitch);
+            float yawRad = MathHelper.DegreesToRadians(_yaw);
+            float pitchRad = MathHelper.DegreesToRadians(_pitch);
             
-            _forward = new WanyEssa.Math.Vector3(
-                (float)(System.Math.Cos(yawRad) * System.Math.Cos(pitchRad)),
-                (float)System.Math.Sin(pitchRad),
-                (float)(System.Math.Sin(yawRad) * System.Math.Cos(pitchRad))
-            ).Normalized;
+            _forward = new OpenTK.Mathematics.Vector3(  
+                MathF.Cos(yawRad) * MathF.Cos(pitchRad),
+                MathF.Sin(pitchRad),
+                MathF.Sin(yawRad) * MathF.Cos(pitchRad)
+            ).Normalized();
             
             // Calculate right and up vectors
-            _right = WanyEssa.Math.Vector3.Cross(_forward, WanyEssa.Math.Vector3.Up).Normalized;
-            _up = WanyEssa.Math.Vector3.Cross(_right, _forward).Normalized;
+            _right = OpenTK.Mathematics.Vector3.Cross(_forward, new OpenTK.Mathematics.Vector3(0, 1, 0)).Normalized();
+            _up = OpenTK.Mathematics.Vector3.Cross(_right, _forward).Normalized();
             
             _viewMatrixDirty = true;
         }

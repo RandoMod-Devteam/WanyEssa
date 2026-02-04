@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
-using WanyEssa.Math;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Graphics
 {
@@ -22,6 +22,9 @@ namespace WanyEssa.Graphics
         public Vector3 Rotation { get; set; } = Vector3.Zero;
         public Vector3 Scale { get; set; } = Vector3.One;
         public bool Visible { get; set; } = true;
+        
+        public int VertexCount => _vertexCount;
+        public int IndexCount => _indexCount;
         
         public Mesh()
         {
@@ -56,6 +59,26 @@ namespace WanyEssa.Graphics
             _textureId = textureId;
         }
         
+        public Vector3 GetVertex(int index)
+        {
+            return _vertices[index];
+        }
+        
+        public Vector3 GetNormal(int index)
+        {
+            return _normals[index];
+        }
+        
+        public Vector2 GetUV(int index)
+        {
+            return _uvs[index];
+        }
+        
+        public int[] GetIndices()
+        {
+            return _indices.ToArray();
+        }
+        
         public void Build()
         {
             // Generate and bind vertex array
@@ -86,14 +109,14 @@ namespace WanyEssa.Graphics
             }
             
             // Upload vertex data
-            GL.BufferData(BufferTarget.ArrayBuffer, vertexData.Count * sizeof(float), vertexData.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertexData.Count * sizeof(float), vertexData.ToArray(), BufferUsage.StaticDraw);
             
             // Create index buffer
             if (_indices.Count > 0)
             {
                 _indexBuffer = GL.GenBuffer();
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, _indexBuffer);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(int), _indices.ToArray(), BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(int), _indices.ToArray(), BufferUsage.StaticDraw);
                 _indexCount = _indices.Count;
             }
             else
@@ -161,15 +184,15 @@ namespace WanyEssa.Graphics
             float halfSize = size * 0.5f;
             
             // Vertices
-            cube.AddVertex(new Vector3(-halfSize, -halfSize, -halfSize), Vector3.Down, new Vector2(0, 0));
-            cube.AddVertex(new Vector3(halfSize, -halfSize, -halfSize), Vector3.Down, new Vector2(1, 0));
-            cube.AddVertex(new Vector3(halfSize, halfSize, -halfSize), Vector3.Down, new Vector2(1, 1));
-            cube.AddVertex(new Vector3(-halfSize, halfSize, -halfSize), Vector3.Down, new Vector2(0, 1));
+            cube.AddVertex(new Vector3(-halfSize, -halfSize, -halfSize), new Vector3(0, -1, 0), new Vector2(0, 0));
+            cube.AddVertex(new Vector3(halfSize, -halfSize, -halfSize), new Vector3(0, -1, 0), new Vector2(1, 0));
+            cube.AddVertex(new Vector3(halfSize, halfSize, -halfSize), new Vector3(0, -1, 0), new Vector2(1, 1));
+            cube.AddVertex(new Vector3(-halfSize, halfSize, -halfSize), new Vector3(0, -1, 0), new Vector2(0, 1));
             
-            cube.AddVertex(new Vector3(-halfSize, -halfSize, halfSize), Vector3.Up, new Vector2(0, 0));
-            cube.AddVertex(new Vector3(halfSize, -halfSize, halfSize), Vector3.Up, new Vector2(1, 0));
-            cube.AddVertex(new Vector3(halfSize, halfSize, halfSize), Vector3.Up, new Vector2(1, 1));
-            cube.AddVertex(new Vector3(-halfSize, halfSize, halfSize), Vector3.Up, new Vector2(0, 1));
+            cube.AddVertex(new Vector3(-halfSize, -halfSize, halfSize), new Vector3(0, 1, 0), new Vector2(0, 0));
+            cube.AddVertex(new Vector3(halfSize, -halfSize, halfSize), new Vector3(0, 1, 0), new Vector2(1, 0));
+            cube.AddVertex(new Vector3(halfSize, halfSize, halfSize), new Vector3(0, 1, 0), new Vector2(1, 1));
+            cube.AddVertex(new Vector3(-halfSize, halfSize, halfSize), new Vector3(0, 1, 0), new Vector2(0, 1));
             
             // Faces
             // Front
@@ -207,10 +230,10 @@ namespace WanyEssa.Graphics
             float halfHeight = height * 0.5f;
             
             // Vertices
-            plane.AddVertex(new Vector3(-halfWidth, 0, -halfHeight), Vector3.Up, new Vector2(0, 0));
-            plane.AddVertex(new Vector3(halfWidth, 0, -halfHeight), Vector3.Up, new Vector2(1, 0));
-            plane.AddVertex(new Vector3(halfWidth, 0, halfHeight), Vector3.Up, new Vector2(1, 1));
-            plane.AddVertex(new Vector3(-halfWidth, 0, halfHeight), Vector3.Up, new Vector2(0, 1));
+            plane.AddVertex(new Vector3(-halfWidth, 0, -halfHeight), new Vector3(0, 1, 0), new Vector2(0, 0));
+            plane.AddVertex(new Vector3(halfWidth, 0, -halfHeight), new Vector3(0, 1, 0), new Vector2(1, 0));
+            plane.AddVertex(new Vector3(halfWidth, 0, halfHeight), new Vector3(0, 1, 0), new Vector2(1, 1));
+            plane.AddVertex(new Vector3(-halfWidth, 0, halfHeight), new Vector3(0, 1, 0), new Vector2(0, 1));
             
             // Faces
             plane.AddFace(0, 1, 2);
@@ -226,15 +249,15 @@ namespace WanyEssa.Graphics
             
             for (int i = 0; i <= segments; i++)
             {
-                float latitude = (float)System.Math.PI * i / segments;
-                float sinLatitude = (float)System.Math.Sin(latitude);
-                float cosLatitude = (float)System.Math.Cos(latitude);
+                float latitude = MathF.PI * i / segments;
+                float sinLatitude = MathF.Sin(latitude);
+                float cosLatitude = MathF.Cos(latitude);
                 
                 for (int j = 0; j <= segments; j++)
                 {
-                    float longitude = 2.0f * (float)System.Math.PI * j / segments;
-                    float sinLongitude = (float)System.Math.Sin(longitude);
-                    float cosLongitude = (float)System.Math.Cos(longitude);
+                    float longitude = 2.0f * MathF.PI * j / segments;
+                    float sinLongitude = MathF.Sin(longitude);
+                    float cosLongitude = MathF.Cos(longitude);
                     
                     Vector3 position = new Vector3(
                         radius * sinLatitude * cosLongitude,
@@ -242,7 +265,7 @@ namespace WanyEssa.Graphics
                         radius * sinLatitude * sinLongitude
                     );
                     
-                    sphere.AddVertex(position, position.Normalized, new Vector2((float)j / segments, (float)i / segments));
+                    sphere.AddVertex(position, position.Normalized(), new Vector2((float)j / segments, (float)i / segments));
                 }
             }
             

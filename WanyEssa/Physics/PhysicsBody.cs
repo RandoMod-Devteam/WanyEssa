@@ -1,4 +1,4 @@
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Physics
 {
@@ -14,8 +14,8 @@ namespace WanyEssa.Physics
         public PhysicsBody(Vector3 position, float mass = 1.0f, bool isStatic = false)
         {
             Position = position;
-            Velocity = Vector3.Zero;
-            Acceleration = Vector3.Zero;
+            Velocity = OpenTK.Mathematics.Vector3.Zero;
+            Acceleration = OpenTK.Mathematics.Vector3.Zero;
             Mass = mass;
             IsStatic = isStatic;
             Drag = 0.99f;

@@ -2,16 +2,20 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>WanyEssa Game Engine</Title>
     <Description>A simple 2D game engine written in C#</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTK" Version="4.9.4" />
-    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.9.4" />
+    <PackageReference Include="FFMpegCore" Version="5.4.0" />
+    <PackageReference Include="OpenTK" Version="5.0.0-pre.15" />
+    <PackageReference Include="OpenTK.Graphics" Version="5.0.0-pre.15" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="xFFMpeg.NET" Version="7.2.0" />
   </ItemGroup>
 
 </Project>

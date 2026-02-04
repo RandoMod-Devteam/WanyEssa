@@ -1,9 +1,10 @@
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.Common;
 using System;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using WanyEssa.Core;
+using WanyEssa.Graphics.Video;
 
 namespace WanyEssa
 {
@@ -15,11 +16,15 @@ namespace WanyEssa
         private MapEditor _mapEditor;
         private bool _showSettings;
         private bool _showMapEditor;
+        private VideoPlayer _videoPlayer;
+        private VideoAccelerator _videoAccelerator;
         
         public Core.Console Console => _console;
         public MapEditor MapEditor => _mapEditor;
         public bool ShowSettings => _showSettings;
         public bool ShowMapEditor => _showMapEditor;
+        public VideoPlayer VideoPlayer => _videoPlayer;
+        public VideoAccelerator VideoAccelerator => _videoAccelerator;
         
         public Game(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
@@ -30,11 +35,16 @@ namespace WanyEssa
             _mapEditor = new MapEditor();
             _showSettings = false;
             _showMapEditor = false;
+            _videoPlayer = new VideoPlayer();
+            _videoAccelerator = new VideoAccelerator();
         }
         
         protected override void OnLoad()
         {
             base.OnLoad();
+            
+            // Initialize video accelerator
+            _videoAccelerator.Initialize();
             
             Initialize();
             _isRunning = true;
@@ -58,6 +68,9 @@ namespace WanyEssa
             {
                 _mapEditor.Update(this, _deltaTime);
             }
+            
+            // Update video player
+            _videoPlayer.Update(_deltaTime);
             
             _deltaTime = (float)args.Time;
             
@@ -154,7 +167,12 @@ namespace WanyEssa
         protected virtual void Update(float deltaTime) {}
         protected virtual void Render() {}
         protected virtual void OnWindowResize(int width, int height) {}
-        protected virtual void Cleanup() {}
+        protected virtual void Cleanup() 
+        {
+            // Dispose video resources
+            _videoPlayer.Dispose();
+            _videoAccelerator.Dispose();
+        }
         
         public float DeltaTime => _deltaTime;
         public bool IsRunning => _isRunning;

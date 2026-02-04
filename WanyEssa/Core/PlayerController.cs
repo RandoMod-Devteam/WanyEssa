@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.Common;
-using WanyEssa.Math;
 using WanyEssa.Graphics;
 using WanyEssa.Physics;
 
@@ -94,7 +94,7 @@ namespace WanyEssa.Core
         {
             // Simple ground check using raycast
             Vector3 rayOrigin = _physicsBody.Position;
-            Vector3 rayDirection = Vector3.Down;
+            Vector3 rayDirection = new Vector3(0, -1, 0); // Down
             float rayLength = _groundCheckDistance + 0.1f;
             
             // For this example, we'll just check against a flat ground plane at y=0
@@ -284,7 +284,7 @@ namespace WanyEssa.Core
         {
             if (_currentWeapon != null)
             {
-                _currentWeapon.Draw(renderer, Color.White);
+                _currentWeapon.Draw(renderer, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
             }
         }
     }

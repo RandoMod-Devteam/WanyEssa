@@ -1,4 +1,4 @@
-using System;   
+using System;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
 
@@ -89,7 +89,7 @@ namespace WanyEssa.Core
             {
                 if (_history.Count > 0)
                 {
-                    _historyIndex = System.Math.Clamp(_historyIndex + 1, 0, _history.Count - 1);
+                    _historyIndex = Math.Clamp(_historyIndex + 1, 0, _history.Count - 1);
                     _inputBuffer = _history[_history.Count - 1 - _historyIndex];
                 }
             }
@@ -98,7 +98,7 @@ namespace WanyEssa.Core
             {
                 if (_history.Count > 0)
                 {
-                    _historyIndex = System.Math.Clamp(_historyIndex - 1, -1, _history.Count - 1);
+                    _historyIndex = Math.Clamp(_historyIndex - 1, -1, _history.Count - 1);
                     if (_historyIndex == -1)
                     {
                         _inputBuffer = string.Empty;
@@ -199,7 +199,7 @@ namespace WanyEssa.Core
                     {
                         if (int.TryParse(args[0], out int fps))
                         {
-                            Settings.Instance.FpsLimit = System.Math.Clamp(fps, 15, 240);
+                            Settings.Instance.FpsLimit = Math.Clamp(fps, 15, 240);
                             Log($"FPS limit set to {Settings.Instance.FpsLimit}");
                         }
                         else
@@ -217,7 +217,7 @@ namespace WanyEssa.Core
                     {
                         if (int.TryParse(args[0], out int msaa))
                         {
-                            Settings.Instance.MsaaLevel = System.Math.Clamp(msaa, 0, 8);
+                            Settings.Instance.MsaaLevel = Math.Clamp(msaa, 0, 8);
                             Log($"MSAA set to {Settings.Instance.MsaaLevel}x");
                         }
                         else
@@ -305,7 +305,7 @@ namespace WanyEssa.Core
                 _messages.RemoveAt(0);
             }
             
-            System.Console.WriteLine(timestampedMessage);
+            Core.Console.WriteLine(timestampedMessage);
         }
         
         public void Draw()
@@ -316,6 +316,11 @@ namespace WanyEssa.Core
             // Draw console background (simplified for now)
             // In a real implementation, this would use the renderer to draw
             // a semi-transparent background with text
+        }
+
+        public static void WriteLine(string v)
+        {
+            System.Console.WriteLine(v);
         }
     }
 }

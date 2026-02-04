@@ -1,4 +1,4 @@
-using WanyEssa.Math;
+using OpenTK.Mathematics;
 
 namespace WanyEssa.Physics
 {
@@ -31,7 +31,7 @@ namespace WanyEssa.Physics
         {
             if (other is CircleCollider circleOther)
             {
-                float distanceSquared = Vector3.Distance(Body.Position, circleOther.Body.Position) * Vector3.Distance(Body.Position, circleOther.Body.Position);
+                float distanceSquared = Vector3.DistanceSquared(Body.Position, circleOther.Body.Position);
                 float radiusSum = Radius + circleOther.Radius;
                 return distanceSquared <= radiusSum * radiusSum;
             }
@@ -103,12 +103,12 @@ namespace WanyEssa.Physics
             if (other is CircleCollider circleOther)
             {
                 Vector3 closestPoint = new Vector3(
-                    System.Math.Clamp(circleOther.Body.Position.X, Body.Position.X - Size.X / 2, Body.Position.X + Size.X / 2),
-                    System.Math.Clamp(circleOther.Body.Position.Y, Body.Position.Y - Size.Y / 2, Body.Position.Y + Size.Y / 2),
-                    System.Math.Clamp(circleOther.Body.Position.Z, Body.Position.Z - Size.Z / 2, Body.Position.Z + Size.Z / 2)
+                    Math.Clamp(circleOther.Body.Position.X, Body.Position.X - Size.X / 2, Body.Position.X + Size.X / 2),
+                    Math.Clamp(circleOther.Body.Position.Y, Body.Position.Y - Size.Y / 2, Body.Position.Y + Size.Y / 2),
+                    Math.Clamp(circleOther.Body.Position.Z, Body.Position.Z - Size.Z / 2, Body.Position.Z + Size.Z / 2)
                 );
                 
-                float distanceSquared = Vector3.Distance(circleOther.Body.Position, closestPoint) * Vector3.Distance(circleOther.Body.Position, closestPoint);
+                float distanceSquared = Vector3.DistanceSquared(circleOther.Body.Position, closestPoint);
                 return distanceSquared <= circleOther.Radius * circleOther.Radius;
             }
             else if (other is BoxCollider boxOther)
